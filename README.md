@@ -24,8 +24,6 @@
 
 ## Python Web
 
-[Django](https://github.com/Rocks526/Python-Notes/blob/master/docs/web/Django.md)
-
 [Flask](https://github.com/Rocks526/Python-Notes/blob/master/docs/web/Flask.md)
 
 ## Python爬虫
