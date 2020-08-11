@@ -1,7 +1,6 @@
 - [Flask快速入门](#js)
 - [Flask对象配置](#pz)
 - [视图](#st)
-- [模板](#mb)
 - [扩展插件](#kz)
   - [Flask-Script](#sc)
   - [Flask-SQLAlchemy](#orm)
@@ -487,16 +486,6 @@ def teardown_request(e):
     return e
 ```
 
-# <a id="mb">模板</a>
-
-
-
-
-
-
-
-
-
 # <a id="kz">扩展插件</a>
 
 ### <a id="sc">Flask-Script</a>
@@ -865,15 +854,50 @@ if __name__ == "__main__":
 >
 > Flask-Mail连接到简单邮件协议（Simple Mail Transfer Protocol,SMTP）服务器，并把邮件交给服务器发送。
 >
-> 发送邮件首先需要开启邮箱的SMTP服务
+> 发送邮件首先需要开启邮箱的SMTP服务，之后根据要求获取授权码
+
+- 示例
+
+```python
+# Flask-Mail发送邮件
+
+from flask import Flask
+from flask_mail import Mail, Message
+
+app = Flask(__name__)
+# 配置邮件：服务器／端口／传输层安全协议／邮箱名／密码
+app.config.update(
+    DEBUG=True,
+    MAIL_SERVER='smtp.qq.com',
+    MAIL_PORT=465,
+    MAIL_USE_SSL=True,
+    MAIL_USE_TLS=False,
+    MAIL_USERNAME='674099234@qq.com',
+    MAIL_PASSWORD="kbpsxivdfgibbeib",
+)
+
+mail = Mail(app)
 
 
+@app.route('/')
+def index():
+    # sender 发送方，recipients 接收方列表
+    msg = Message("This is a test Mail By Lzx", sender='674099234@qq.com', recipients=['2533639692@qq.com', '1804283990@qq.com', 'rocks526@126.com'])
+    # 邮件内容
+    msg.body = "Flask test mail"
+    # 发送邮件
+    mail.send(msg)
+    return "Send　Succeed"
 
 
+if __name__ == "__main__":
+    app.run()
+```
 
-
-
-
+- 常见异常
+  - 没有开启POP3/SMTP服务：smtplib.SMTPAuthenticationError: (454, 'Authentication failed, please open smtp flag first!')
+  - 授权码异常：smtplib.SMTPAuthenticationError: (535, 'Authentication failed')
+  - 没有开启TLS：smtplib.SMTPServerDisconnected: Connection unexpectedly closed
 
 # <a id="cs">测试与部署</a>
 
@@ -887,15 +911,212 @@ if __name__ == "__main__":
 > - 不通过app.route()的方式注册路由，改用手动注册或者自定义装饰器注册
 > - 蓝图
 
+- 蓝图的定义
+
+蓝图：用于实现单个应用的视图、模板、静态文件的集合。一个蓝图类似于Django里面的一个应用。
+
+- 蓝图实现机制
+
+蓝图是保存了一组将来可以在应用对象上执行的操作。注册路由就是一种操作,当在程序实例上调用route装饰器注册路由时，这个操作将修改对象的url_map路由映射列表。当我们在蓝图对象上调用route装饰器注册路由时，它只是在内部的一个延迟操作记录列表defered_functions中添加了一个项。当执行应用对象的 register_blueprint() 方法时，应用对象从蓝图对象的 defered_functions 列表中取出每一项，即调用应用对象的 add_url_rule() 方法，这将会修改程序实例的路由映射列表。
+
+- 蓝图的使用
+
+  - 创建蓝图对象：admin表示蓝图的名称，name是蓝图所在模块
+
+  ```python
+admin = Blueprint('admin',__name__)；
+  ```
+  
+  - 注册蓝图路由：
+  
+    ```python
+  @admin.route('/')
+    def admin_index():
+        return 'admin_index'
+    ```
+  
+  - 在flask实例中注册蓝图信息：
+  
+  	```python
+    app.register_blueprint(admin,url_prefix='/admin')
+    ```
+
+- 示例
+
+```python
+# flask主程序
+from flask import Flask
+from blueprint.user import user
+from blueprint.workorder import workorder
+
+app = Flask(__name__)
+
+app.config["DEBUG"] = True
+
+# 注册蓝图并设置蓝图请求前缀
+app.register_blueprint(user, url_prefix="/user")
+app.register_blueprint(workorder, url_prefix="/workorder")
 
 
+@app.route("/get")
+def get_all():
+    return "main get info success!"
 
+
+if __name__ == "__main__":
+    print(app.url_map)
+    app.run()
+----------------------------------------------------
+# user模块
+
+from flask import Blueprint
+
+# 创建蓝图对象
+user = Blueprint("user", __name__)
+
+
+# 注册路由
+@user.route("/get")
+def get_user():
+    return "get User Info success!"
+-----------------------------------------------------
+# 工单模块
+
+from flask import Blueprint
+
+workorder = Blueprint("workorder", __name__)
+
+
+@workorder.route("/get")
+def get_workorder():
+    return "get WorkOrder success!"
+----------------------------------------------------
+Map([<Rule '/workorder/get' (OPTIONS, HEAD, GET) -> workorder.get_workorder>,
+ <Rule '/user/get' (OPTIONS, HEAD, GET) -> user.get_user>,
+ <Rule '/get' (OPTIONS, HEAD, GET) -> get_all>,
+ <Rule '/static/<filename>' (OPTIONS, HEAD, GET) -> static>])
+```
+
+- 注意事项
+  - 一般项目中会根据功能模块进行划分，在蓝图目录里创建static，template等目录，类似于Django的结构，在蓝图里，搜索template时会首先寻找主程序下的template目录，之后再查找蓝图下的template目录
 
 ### <a id="dy">单元测试</a>
 
+- 断言
 
+> 断言就是判断一个函数或对象的一个方法所产生的结果是否符合你期望的那个结果。 python中assert断言是声明布尔值为真的判定，如果表达式为假会发生异常。单元测试中，一般使用assert来断言结果。
 
+- 示例
 
+```python
+# 断言练习
+num = 12
+assert num >= 0, "num小于0"
+sql = "select * from user where id = 8"
+assert sql.__contains__("select from"), "sql不包含'select from'语句"
+----------------------------------------
+第二个断言不满足条件，抛出异常：
+AssertionError: sql不包含'select from'语句
+```
+
+- Python中的单元测试库：unittest
+
+```python
+# 单元测试练习
+import unittest
+
+class TestClass(unittest.TestCase):
+
+    # 此方法会在所有单元测试执行之前执行
+    def setUp(self) -> None:
+        print("------------start----------------")
+
+    # 此方法会在所有单元测试执行完之后执行
+    def tearDown(self) -> None:
+        print("--------------end-------------------")
+
+    # 测试代码 必须以test_开头
+    def test_number(self):
+        num = 12
+        assert num >= 0, "num小于0"
+        sql = "select * from user where id = 8"
+        assert sql.__contains__("select from"), "sql不包含'select from'语句"
+       
+if __name__ == '__main__':
+    suite = unittest.TestSuite()
+    suite.addTest(TestClass('test_number'))
+    runner = unittest.TextTestRunner()
+    runner.run(suite)
+----------------------------------------------
+常用的断言方法：
+self.assertEqual     如果两个值相等，则pass
+self.assertNotEqual  如果两个值不相等，则pass
+self.assertTrue      判断bool值为True，则pass
+self.assertFalse     判断bool值为False，则pass
+self.assertIsNone    不存在，则pass
+self.assertIsNotNone 存在，则pass
+```
+
+- flask中的单元测试
+
+```python
+# flask的单元测试
+import unittest
+from flask_test_main import app
+import json
+
+class flaskTest(unittest.TestCase):
+
+    def test_flask(self):
+        client = app.test_client()
+        res = client.get("/index")
+        json_data = res.data
+        obj = json.loads(json_data)
+        self.assertIn("code", obj)
+        self.assertEqual(obj["code"], 200)
+
+if __name__ == "__main__":
+    # suite = unittest.TestSuite()
+    # suite.addTest(flaskTest('test_flask'))
+    # runner = unittest.TextTestRunner()
+    # runner.run(suite)
+    unittest.main()
+```
 
 ### <a id="bs">部署</a>
+
+> 在程序开发时使用的flask自带的服务器，完成了web服务的启动。在生产环境中，flask自带的服务器，无法满足性能要求，我们这里采用Gunicorn做wsgi容器，来部署flask程序。Gunicorn（绿色独角兽）是一个Python WSGI的HTTP服务器。从Ruby的独角兽（Unicorn ）项目移植。该Gunicorn服务器与各种Web框架兼容，实现非常简单，轻量级的资源消耗。Gunicorn直接用命令启动，不需要编写配置文件，相对uWSGI要容易很多。
+>
+> **Windows不支持Gunicorn服务器，需要运行于Linux环境。**
+
+- 常见概念
+  - **WSGI：**全称是Web Server Gateway Interface（web服务器网关接口），它是一种规范，它是web服务器和web应用程序之间的接口。
+  - **uwsgi：**是一种传输协议，用于定义传输信息的类型。
+  - **uWSGI：**是实现了uwsgi协议WSGI的web服务器。
+
+- 一般部署采用nginx + gunicorn + flask
+
+- Gunicorn使用
+
+  - 安装 gunicorn 
+
+  >  pip install gunicorn
+
+  - 查看gunicorn常用参数
+
+  >  gunicorn -h
+
+  - 运行程序
+
+  > gunicorn 文件名称:应用程序实例名称
+  >
+  > 例如：gunicorn flask:app
+  >
+  > 直接运行默认127.0.0.1:8000
+
+  - 指定端口号
+
+  > -w指定运行进程数  -b指定IP和端口  --access-logfile执行日志存放位置
+  >
+  > 例如：gunicorn -w 4 -b 127.0.0.1:9000 --access-logfile ./logs/flask.log flask:app
 
