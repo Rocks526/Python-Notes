@@ -32,5 +32,11 @@
 
 [Scrapy](https://github.com/Rocks526/Python-Notes/blob/master/docs/reptile/Scrapy.md)
 
+## Python数据分析
 
+[Numpy](https://github.com/Rocks526/Python-Notes/blob/master/docs/analysis/Numpy.md)
+
+[matplotlib](https://github.com/Rocks526/Python-Notes/blob/master/docs/analysis/matplotlib.md)
+
+[padas](https://github.com/Rocks526/Python-Notes/blob/master/docs/analysis/padas.md)
 
