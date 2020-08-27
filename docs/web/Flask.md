@@ -73,6 +73,12 @@ if __name__ == "__main__":
     app.run()
 ```
 
+3. 通过命令行启动flask
+
+```python
+python3 flask_demo.py --host 127.0.0.1 --port 8000
+```
+
 # <a id="pz">Flask对象配置</a>
 
 - Flask对象的\__name__参数
@@ -1116,7 +1122,7 @@ if __name__ == "__main__":
 
   - 指定端口号
 
-  > -w指定运行进程数  -b指定IP和端口  --access-logfile执行日志存放位置
+  > -w指定运行进程数  -b指定IP和端口  --access-logfile执行日志存放位置 -d 后台运行
   >
-  > 例如：gunicorn -w 4 -b 127.0.0.1:9000 --access-logfile ./logs/flask.log flask:app
+  > 例如：gunicorn -w 4 -b -d 127.0.0.1:9000 --access-logfile ./logs/flask.log flask:app
 
