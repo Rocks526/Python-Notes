@@ -29,6 +29,8 @@ OS模块提供了多数操作系统的功能接口函数。当os模块被导入�
 - os.chmod(file)：修改文件权限
 - os.rename(src,dst)：重命名
 - os.exit()：终止当前进程  
+- os.command()：执行cmd命令
+- os.popen()：执行cmd命令，可以获取命令行输出结果
 
 # 代码示例
 
@@ -91,6 +93,10 @@ print(os.path.join("d:", "demo"))
 
 # 终止当前进程
 os._exit(-1)
+
+# 执行java -jar命令
+console = os.popen('java -jar {} {} {} {}'.format(transf_jar_path, self.dev_ip, self.hosts, log_source_file), 'r')
+jar_response = console.read()
 ```
 
 > 参考：https://blog.csdn.net/weixin_38507813/article/details/87797839
